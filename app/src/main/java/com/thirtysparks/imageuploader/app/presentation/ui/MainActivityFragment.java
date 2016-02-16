@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import com.bumptech.glide.Glide;
 import com.thirtysparks.imageuploader.app.R;
+import com.thirtysparks.imageuploader.app.presentation.presenter.MainActivityPresenter;
 import com.thirtysparks.imageuploader.app.util.Util;
 
 import java.util.ArrayList;
@@ -27,11 +29,13 @@ import java.util.List;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class MainActivityFragment extends Fragment implements MainView {
     private static final int  FILE_CODE = 0;
 
     @Bind(R.id.btn_select) TextView textView;
     @Bind(R.id.ll_images) LinearLayout imagesLinearLayout;
+
+    private MainActivityPresenter presenter;
 
     public MainActivityFragment() {
     }
@@ -60,48 +64,76 @@ public class MainActivityFragment extends Fragment {
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        presenter = new MainActivityPresenter();
+        presenter.setView(this);
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
-            processPickImageResult(data);
+            presenter.processPickImageResult(data);
         }
     }
 
-    private void processPickImageResult(Intent data){
-        List<Uri> imagesList = extractSelectedImage(data);
-
-        for(Uri uri:imagesList){
-            ImageView iv = new ImageView(getActivity());
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.convertDipToPix(getResources().getDisplayMetrics(), 200));
-            params.bottomMargin = Util.convertDipToPix(getResources().getDisplayMetrics(), 8);
-            iv.setLayoutParams(params);
-            Glide.with(this)
-                    .load(uri)
-                    .into(iv);
-            imagesLinearLayout.addView(iv);
-        }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        presenter.destroy();
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    private List<Uri> extractSelectedImage(Intent data){
-        List<Uri> imagesList = new ArrayList<>();
-        if(data.getData()!=null){
-            Uri mImageUri=data.getData();
+    @Override
+    public void onPause() {
+        super.onPause();
+        presenter.pause();
+    }
 
-            Log.v("AAA", "One image: " + mImageUri);
-            imagesList.add(mImageUri);
+    @Override
+    public void onResume() {
+        super.onResume();
+        presenter.resume();
+    }
 
-        }
-        else {
-            if (data.getClipData() != null) {
-                ClipData clipData = data.getClipData();
-                for (int i = 0; i < clipData.getItemCount(); i++) {
-                    ClipData.Item item = clipData.getItemAt(i);
-                    Uri uri = item.getUri();
-                    imagesList.add(uri);
-                    Log.v("LOG_TAG", "image: " + uri);
-                }
+    @Override
+    public void hideLoading() {
+
+    }
+
+    @Override
+    public void showLoading() {
+
+    }
+
+    @Override
+    public void showRetry() {
+
+    }
+
+    @Override
+    public void hideRetry() {
+
+    }
+
+    @Override
+    public void showError(String message) {
+
+    }
+
+    @Override
+    public void displaySelectedImages(List<Uri> imagesList) {
+        if(null != getActivity()) {
+            for (Uri uri : imagesList) {
+                ImageView iv = new ImageView(getActivity());
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.convertDipToPix(getResources().getDisplayMetrics(), 200));
+                params.bottomMargin = Util.convertDipToPix(getResources().getDisplayMetrics(), 8);
+                iv.setLayoutParams(params);
+                Glide.with(this)
+                        .load(uri)
+                        .into(iv);
+                imagesLinearLayout.addView(iv);
             }
         }
-        return imagesList;
     }
 }
