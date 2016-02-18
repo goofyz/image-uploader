@@ -6,12 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import com.bumptech.glide.Glide;
 import com.thirtysparks.imageuploader.app.presentation.ui.MainView;
-import com.thirtysparks.imageuploader.app.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
